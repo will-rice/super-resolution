@@ -1,0 +1,7 @@
+torch
+torchvision
+torchaudio
+pytorch-lightning
+ruff
+mypy
+transformers

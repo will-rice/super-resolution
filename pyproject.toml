@@ -1,0 +1,41 @@
+[project]
+name = "super-resolution"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "torch>=2.4.1",
+    "torchvision>=0.19.1",
+    "torchaudio>=2.4.1",
+    "pytorch-lightning>=2.4.0",
+    "ruff>=0.6.4",
+    "pre-commit>=3.8.0",
+    "pytest>=8.3.2",
+    "pydocstyle>=6.3.0",
+    "mypy>=1.11.2",
+    "transformers>=4.44.2",
+    "uv>=0.4.5",
+    "timm>=1.0.9",
+    "datasets>=2.21.0",
+    "pandas>=2.2.2",
+    "requests>=2.32.3",
+    "pandas-stubs>=2.2.2.240909",
+    "types-requests>=2.32.0.20240907",
+    "tqdm>=4.66.5",
+    "wandb>=0.17.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff.lint]
+extend-select = ["C", "E", "F", "I", "W", "D", "N", "B"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.mypy]
+ignore_missing_imports = true
+follow_imports_for_stubs = true

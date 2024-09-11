@@ -1,2 +1,2 @@
 # super-resolution
-Training framework for super resolution models
+A framework for training super resolution models.

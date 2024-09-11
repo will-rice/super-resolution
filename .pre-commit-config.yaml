@@ -1,0 +1,33 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: check-ast
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        language: system
+        entry: ruff check src --fix
+        types: [ python ]
+      - id: mypy
+        name: mypy
+        language: system
+        entry: mypy src
+        pass_filenames: false
+        always_run: true
+      - id: pytest
+        name: pytest
+        language: system
+        entry: python -m pytest
+        pass_filenames: false
+        always_run: true
+      - id: pydocstyle
+        name: pydocstyle
+        description: pydocstyle is a static analysis tool for checking compliance with Python docstring conventions.
+        entry: pydocstyle --convention=google --add-ignore=D107
+        language: python
+        types: [ python ]
