@@ -36,9 +36,11 @@ class SuperResolutionLightningModule(LightningModule):
 
         self.metrics = MetricCollection(
             {
-                "ssim": StructuralSimilarityIndexMeasure(),
-                "psnr": PeakSignalNoiseRatio(),
-                "ms_ssim": MultiScaleStructuralSimilarityIndexMeasure(),
+                "ssim": StructuralSimilarityIndexMeasure(data_range=(0, 1)),
+                "psnr": PeakSignalNoiseRatio(data_range=(0, 1)),
+                "ms_ssim": MultiScaleStructuralSimilarityIndexMeasure(
+                    data_range=(0, 1)
+                ),
             }
         )
         self.last_val_batch: dict[str, Any] = {}
@@ -79,7 +81,7 @@ class SuperResolutionLightningModule(LightningModule):
             {"val_l1_loss": l1_loss, "val_aux_loss": aux_loss, "val_hf_loss": hf_loss},
             sync_dist=self.sync_dist,
         )
-        metrics = self.metrics(outputs, targets)
+        metrics = self.metrics(outputs.clip(0, 1), targets.clip(0, 1))
         self.log_dict(metrics, sync_dist=self.sync_dist)
         self.last_val_batch = {"source": inputs, "target": targets, "output": outputs}
         return loss
@@ -122,6 +124,8 @@ class SuperResolutionLightningModule(LightningModule):
                 ]
             }
         )
+        self.model.load_state_dict(self.ema_model.module.state_dict())
+        self.model.model.push_to_hub("swin2sr-laion-hd")
 
         torch.save(
             self.ema_model.state_dict(), self.trainer.default_root_dir + "/model.pt"
@@ -132,7 +136,10 @@ class SuperResolutionLightningModule(LightningModule):
         """Update EMA model."""
         self.ema_model.update_parameters(self.model)
 
-    def configure_optimizers(self) -> torch.optim.Optimizer:
+    def configure_optimizers(self) -> Any:
         """Configure optimizers."""
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-4)
-        return optimizer
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=2e-4)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(
+            optimizer, gamma=0.5, milestones=[500000, 800000, 900000, 950000, 1000000]
+        )
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}

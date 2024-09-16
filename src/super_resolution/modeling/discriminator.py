@@ -16,7 +16,7 @@ class PatchGANDiscriminator(nn.Module):
         n_layers: number of conv layer with stride 2
         norm_type:  'batch', 'instance', 'spectral', 'batchspectral', instancespectral'
 
-    Returns
+    Returns:
     -------
         tensor: score
     """
