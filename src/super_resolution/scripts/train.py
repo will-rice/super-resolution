@@ -2,6 +2,7 @@
 
 import argparse
 from pathlib import Path
+from typing import Any
 
 import torch
 from pytorch_lightning import Trainer, seed_everything
@@ -10,6 +11,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 from super_resolution.datamodule import SuperResolutionDataModule
 from super_resolution.datasets.image import ImageDataset
+from super_resolution.datasets.laion_hd import LaionHDDataset
 from super_resolution.lightning_module import SuperResolutionLightningModule
 from super_resolution.modeling.swin2sr.model import Swin2SR
 
@@ -23,7 +25,7 @@ def main() -> None:
     """Train script."""
     parser = argparse.ArgumentParser(description="Super resolution training scripts.")
     parser.add_argument("name", type=str)
-    parser.add_argument("data_root", type=Path)
+    parser.add_argument("--data_root", type=Path, default=None)
     parser.add_argument("--log_path", default="logs", type=Path)
     parser.add_argument("--batch_size", default=8, type=int)
     parser.add_argument("--num_workers", default=8, type=int)
@@ -50,7 +52,11 @@ def main() -> None:
             torch.load(args.weights_path)["state_dict"]
         )
 
-    dataset = ImageDataset(args.data_root)
+    if args.data_root:
+        dataset: Any = ImageDataset(args.data_root)
+    else:
+        dataset = LaionHDDataset()
+
     datamodule = SuperResolutionDataModule(
         dataset, batch_size=args.batch_size, num_workers=args.num_workers
     )
@@ -78,14 +84,14 @@ def main() -> None:
 
     trainer = Trainer(
         default_root_dir=log_path,
-        max_epochs=1000,
+        max_epochs=10000,
         accelerator="auto",
         devices=args.num_devices,
         logger=logger,
         precision="bf16-mixed",
         callbacks=[checkpoint_callback, lr_callback],
         limit_val_batches=100,
-        # val_check_interval=5000,
+        val_check_interval=5000 if len(dataset) // args.batch_size > 5000 else None,
         overfit_batches=0.05 if args.overfit else 0.0,
         gradient_clip_val=1.0,
         accumulate_grad_batches=2,

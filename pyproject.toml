@@ -32,9 +32,10 @@ build-backend = "hatchling.build"
 
 [tool.ruff.lint]
 extend-select = ["C", "E", "F", "I", "W", "D", "N", "B"]
+ignore = ["D107"]
 
 [tool.ruff.lint.pydocstyle]
-convention = "numpy"
+convention = "google"
 
 [tool.mypy]
 ignore_missing_imports = true
